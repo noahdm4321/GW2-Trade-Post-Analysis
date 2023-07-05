@@ -8,5 +8,13 @@
 		"plaintext",
 		"html",
 		"python"
+	],
+	"sqltools.connections": [
+		{
+			"previewLimit": 50,
+			"driver": "SQLite",
+			"database": "${workspaceFolder:Trade-Post-Database}/item_data.db",
+			"name": "item_data"
+		}
 	]
 }
