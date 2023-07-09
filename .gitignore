@@ -1,1 +1,5 @@
 data.db
+*.Rproj.user
+*.RData
+*.Rhistory
+/.vs
