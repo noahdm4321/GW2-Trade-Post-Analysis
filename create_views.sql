@@ -1,4 +1,4 @@
-﻿--['
+﻿--[
 	Each block of code must be exicuted separaely! To do this, select the block of code you wish to exicute, right click, and select "Run Selected Query".
 ]--
 

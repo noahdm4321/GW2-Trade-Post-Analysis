@@ -3,11 +3,13 @@ import requests
 import json
 import sqlite3
 
+BATCH_SIZE = 25         ## API pages pulled before committing to database
+USE_LISTINGS = True     ## Use listing data for prices instead of price data
+
 ITEMS_URL = "https://api.guildwars2.com/v2/items"
 PRICES_URL = "https://api.guildwars2.com/v2/commerce/prices"
 RECIPES_URL = "https://api.guildwars2.com/v2/recipes"
-
-BATCH_SIZE = 25  ## API pages pulled before committing to database
+LISTINGS_URL = "https://api.guildwars2.com/v2/commerce/listings"
 
 
 def get_data(url, page):
@@ -23,25 +25,32 @@ def get_data(url, page):
     """
     params = {"page": page, "page_size": 200}
     response = requests.get(url, params=params)
-    return response.json()
+
+    try:
+        data = response.json()
+    except json.JSONDecodeError:
+        # Handle JSON decoding error
+        print("Error: Failed to decode JSON response")
+        return {}
+    
+    return data
 
 
 def update_prices_in_sql(cursor, prices):
     """
-    Updates the prices table in data.db with items data.
+    Updates the prices table in data.db with prices data.
 
     Args:
         cursor (sqlite3.Cursor): The cursor object for executing SQL queries.
-        items (list): The list of items containing price data.
+        prices (list): The list of items containing price data.
     """
     date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     rows = []
 
     for price in prices:
         item_id = price.get("id")
-        buy = price["buys"]
-        sell = price["sells"]
-        whitelist = int(price.get("whitelisted"))
+        buy = price.get("buys")
+        sell = price.get("sells")
 
         buy_price = buy.get("unit_price") if buy else None
         buy_quantity = buy.get("quantity") if buy else None
@@ -52,7 +61,6 @@ def update_prices_in_sql(cursor, prices):
             (
                 item_id,
                 date,
-                whitelist,
                 buy_price,
                 buy_quantity,
                 sell_price,
@@ -61,16 +69,51 @@ def update_prices_in_sql(cursor, prices):
         )
 
     cursor.executemany(
-        """INSERT INTO prices (item_id, date_updated, whitelisted, buy_price, buy_quantity, sell_price, sell_quantity)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """INSERT INTO prices (item_id, date_updated, buy_price, buy_quantity, sell_price, sell_quantity)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(item_id) DO UPDATE SET
             date_updated = excluded.date_updated,
-            whitelisted = excluded.whitelisted,
             buy_price = excluded.buy_price,
             buy_quantity = excluded.buy_quantity,
             sell_price = excluded.sell_price,
             sell_quantity = excluded.sell_quantity""",
         rows,
+    )
+
+
+def update_listings_in_sql(cursor, listings):
+    """
+    Updates the prices table in data.db with listing data.
+
+    Args:
+        cursor (sqlite3.Cursor): The cursor object for executing SQL queries.
+        listing (list): The list of items containing listing data.
+    """
+    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    rows = []
+
+    for listing in listings:
+        item_id = listing.get("id")
+        buy = listing.get("buys")
+        sell = listing.get("sells")
+
+        buy_price = buy[0].get("unit_price") if buy else None
+        buy_quantity = buy[0].get("quantity") if buy else None
+        sell_price = sell[0].get("unit_price") if sell else None
+        sell_quantity = sell[0].get("quantity") if sell else None
+
+        rows.append((item_id, date, buy_price, buy_quantity, sell_price, sell_quantity))
+
+    cursor.executemany(
+        """INSERT INTO prices (item_id, date_updated, buy_price, buy_quantity, sell_price, sell_quantity)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(item_id) DO UPDATE SET
+            date_updated = excluded.date_updated,
+            buy_price = excluded.buy_price,
+            buy_quantity = excluded.buy_quantity,
+            sell_price = excluded.sell_price,
+            sell_quantity = excluded.sell_quantity""",
+        rows
     )
 
 
@@ -140,7 +183,7 @@ def update_recipes_in_sql(cursor, recipes):
             (
                 id,
                 type,
-                output_id,
+                output_id, 
                 output_count,
                 input_id[0],
                 input_count[0],
@@ -170,24 +213,46 @@ def main():
     connection = sqlite3.connect("data.db")
     cursor = connection.cursor()
 
-    # Fetch and update price data
-    price_page = 0
-    while True:
-        prices = get_data(PRICES_URL, price_page)
-        update_prices_in_sql(cursor, prices)
-        if len(prices) < 200:
-            break
-        price_page += 1
+    if USE_LISTINGS:
+        # Fetch and update price data based on listings
+        listing_page = 0
+        while True:
+            listings = get_data(LISTINGS_URL, listing_page)
+            update_listings_in_sql(cursor, listings)
+            if len(listings) < 200:
+                break
+            listing_page += 1
 
-        # Commit changes in batches
-        if price_page % BATCH_SIZE == 0:
-            print(f"Committed {price_page*200} rows in prices table.")
-            connection.commit()
+            # Commit changes in batches
+            if listing_page % BATCH_SIZE == 0:
+                print(f"Committed {listing_page*200} rows in price table.")
+                connection.commit()
 
-    connection.commit()
-    cursor.execute("SELECT COUNT(item_id) FROM prices")
-    prices_len = cursor.fetchone()[0]
-    print(f"Updated {prices_len} prices!")
+        connection.commit()
+        cursor.execute("SELECT COUNT(item_id) FROM prices")
+        prices_len = cursor.fetchone()[0]
+        print(f"Updated {prices_len} prices!")
+
+    else:
+        # Fetch and update price data based on prices
+        price_page = 0
+        while True:
+            prices = get_data(PRICES_URL, price_page)
+            update_prices_in_sql(cursor, prices)
+            if len(prices) < 200:
+                break
+            price_page += 1
+
+            # Commit changes in batches
+            if price_page % BATCH_SIZE == 0:
+                print(f"Committed {price_page*200} rows in prices table.")
+                connection.commit()
+
+        connection.commit()
+        cursor.execute("SELECT COUNT(item_id) FROM prices")
+        prices_len = cursor.fetchone()[0]
+        print(f"Updated {prices_len} prices!")
+
 
     # Fetch and update item data
     item_page = 0
@@ -207,6 +272,7 @@ def main():
     cursor.execute("SELECT COUNT(id) FROM items")
     items_len = cursor.fetchone()[0]
     print(f"Updated {items_len} items!")
+
 
     # Fetch and update recipes data
     recipes_page = 0

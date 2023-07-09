@@ -24,7 +24,6 @@ cursor.execute(
     CREATE TABLE IF NOT EXISTS [prices] (
         [item_id] MEDIUMINT PRIMARY KEY NOT NULL, 
         [date_updated] DATETIME NOT NULL, 
-        [whitelisted] BOOLEAN NOT NULL, 
         [buy_price] BIGINT NULL, 
         [buy_quantity] BIGINT NULL, 
         [sell_price] BIGINT NULL, 
