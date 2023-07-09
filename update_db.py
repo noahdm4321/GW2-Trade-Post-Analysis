@@ -7,7 +7,8 @@ ITEMS_URL = "https://api.guildwars2.com/v2/items"
 PRICES_URL = "https://api.guildwars2.com/v2/commerce/prices"
 RECIPES_URL = "https://api.guildwars2.com/v2/recipes"
 
-BATCH_SIZE = 25      ## API pages pulled before committing to database
+BATCH_SIZE = 25  ## API pages pulled before committing to database
+
 
 def get_data(url, page):
     """
@@ -20,10 +21,7 @@ def get_data(url, page):
     Returns:
         dict: The JSON response containing the data.
     """
-    params = {
-        "page": page,
-        "page_size": 200
-    }
+    params = {"page": page, "page_size": 200}
     response = requests.get(url, params=params)
     return response.json()
 
@@ -50,7 +48,17 @@ def update_prices_in_sql(cursor, prices):
         sell_price = sell.get("unit_price") if sell else None
         sell_quantity = sell.get("quantity") if sell else None
 
-        rows.append((item_id, date, whitelist, buy_price, buy_quantity, sell_price, sell_quantity))
+        rows.append(
+            (
+                item_id,
+                date,
+                whitelist,
+                buy_price,
+                buy_quantity,
+                sell_price,
+                sell_quantity,
+            )
+        )
 
     cursor.executemany(
         """INSERT INTO prices (item_id, date_updated, whitelisted, buy_price, buy_quantity, sell_price, sell_quantity)
@@ -62,7 +70,7 @@ def update_prices_in_sql(cursor, prices):
             buy_quantity = excluded.buy_quantity,
             sell_price = excluded.sell_price,
             sell_quantity = excluded.sell_quantity""",
-        rows
+        rows,
     )
 
 
@@ -83,15 +91,16 @@ def update_items_in_sql(cursor, items):
         level = item.get("level")
         flags = " ".join(item.get("flags")) if item.get("flags") else None
         rarity = item.get("rarity")
+        value = item.get("vendor_value")
         icon = item.get("icon")
 
-        rows.append((id, name, item_type, level, flags, rarity, icon))
+        rows.append((id, name, item_type, level, flags, value, rarity, icon))
 
     cursor.executemany(
-        """INSERT INTO items (id, name, type, level, flags, rarity, icon)
-           VALUES (?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT DO NOTHING""",
-        rows
+        """INSERT INTO items (id, name, type, level, flags, value, rarity, icon)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO NOTHING""",
+        rows,
     )
 
 
@@ -120,18 +129,39 @@ def update_recipes_in_sql(cursor, recipes):
             else:
                 input_id.append(None)
                 input_count.append(None)
-        disciplines = " ".join(recipe.get("disciplines")) if recipe.get("disciplines") else None
+        disciplines = (
+            " ".join(recipe.get("disciplines")) if recipe.get("disciplines") else None
+        )
         time = recipe.get("time_to_craft_ms")
         min_rating = recipe.get("min_rating")
         auto_learn = True if recipe.get("flags") == ["AutoLearned"] else False
 
-        rows.append((id, type, output_id, output_count, input_id[0], input_count[0], input_id[1], input_count[1], input_id[2], input_count[2], input_id[3], input_count[3], time, disciplines, min_rating, auto_learn))
+        rows.append(
+            (
+                id,
+                type,
+                output_id,
+                output_count,
+                input_id[0],
+                input_count[0],
+                input_id[1],
+                input_count[1],
+                input_id[2],
+                input_count[2],
+                input_id[3],
+                input_count[3],
+                time,
+                disciplines,
+                min_rating,
+                auto_learn,
+            )
+        )
 
     cursor.executemany(
-        """INSERT INTO recipes (id, type, output_id, output_count, input_id_1, input_count_1, input_id_2, input_count_2, input_id_3, input_count_3, input_id_4, input_count_4, time, disciplines, min_rating, auto_learn)
+        """INSERT INTO recipes (id, type, output_id, output_count, input1_id, input1_count, input2_id, input2_count, input3_id, input3_count, input4_id, input4_count, time, disciplines, min_rating, auto_learn)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-           ON CONFLICT DO NOTHING""",
-        rows
+           ON CONFLICT(id) DO NOTHING""",
+        rows,
     )
 
 
@@ -139,7 +169,6 @@ def main():
     # Connect to data.db
     connection = sqlite3.connect("data.db")
     cursor = connection.cursor()
-
 
     # Fetch and update price data
     price_page = 0
@@ -154,12 +183,11 @@ def main():
         if price_page % BATCH_SIZE == 0:
             print(f"Committed {price_page*200} rows in prices table.")
             connection.commit()
-    
+
     connection.commit()
     cursor.execute("SELECT COUNT(item_id) FROM prices")
     prices_len = cursor.fetchone()[0]
     print(f"Updated {prices_len} prices!")
-
 
     # Fetch and update item data
     item_page = 0
@@ -180,8 +208,7 @@ def main():
     items_len = cursor.fetchone()[0]
     print(f"Updated {items_len} items!")
 
-
-     # Fetch and update recipes data
+    # Fetch and update recipes data
     recipes_page = 0
     while True:
         recipes = get_data(RECIPES_URL, recipes_page)
@@ -199,10 +226,8 @@ def main():
     cursor.execute("SELECT COUNT(id) FROM recipes")
     recipes_len = cursor.fetchone()[0]
     print(f"Updated {recipes_len} recipes, {prices_len} prices, and {items_len} items!")
-    
 
     connection.close()
-    
 
 
 if __name__ == "__main__":
