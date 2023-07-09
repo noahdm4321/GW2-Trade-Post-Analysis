@@ -1,5 +1,5 @@
 data.db
 *.Rproj.user
-*.RData
 /.vs
 /R-Script/.Rhistory
+.vscode/settings.json
