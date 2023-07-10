@@ -88,7 +88,7 @@ investments <- item_data %>%
 
 ## Refining Investment Opportunities
 
-##### In this section, we all items in `investments`. We use a reference line to indicate the threshold at which items will instantly sell or buy (red). Then, we further refine the investment opportunities by filtering out items that have a sell price exceeding twice the buy price, with a reference line indicating 2x buy value (blue).
+##### In this section, we filter all items in `investments`. We use a reference line to indicate the threshold at which items will instantly sell or buy (red). Then, we further refine the investment opportunities by filtering out items that have a sell price exceeding twice the buy price, with a reference line indicating 2x buy value (blue).
 
 ![](investments_files/figure-gfm/chart%202-1.png)<!-- -->
 
@@ -103,7 +103,7 @@ investments <- investments %>%
 
 ## Finalizing Investment Opportunities
 
-##### In this section, we further refine the investment opportunities by filtering out lower-profit items that have a profit less than 30% of buy price. We also remove items with a buy price higher than 100 gold. Finally, we plot the data to visualize the remaining investment opportunities and list the items sorted by their profit in descending order.
+##### In this section, we further refine the investment opportunities by filtering out lower-profit items that have a profit less than 30% of buy price (blue). We also remove items with a buy price higher than 100 gold (red). Finally, we plot the data to visualize the remaining investment opportunities and list the items sorted by their profit in descending order.
 
 ![](investments_files/figure-gfm/chart%203.5-1.png)<!-- -->
 
@@ -122,23 +122,25 @@ investments <- investments %>%
 
 #### We have our results! All of these items you should purchase and list at the recommended prices. Keep in mind that there is no garentee that all of the items will sell or be purchased as the market tends to flucuate. I am working on creating a historical database to calculate a fullfilment probability percentage.
 
-    ## Polysaturating Reverberating Infusion (Purple)  |  sell:*189g90s12c* - buy:*95g0s28c* = profit:*66g41s31c*
-    ## Wall of the Mists  |  sell:*179g0s0c* - buy:*90g1s6c* = profit:*62g13s93c*
-    ## Polysaturating Reverberating Infusion (Red)  |  sell:*180g0s0c* - buy:*92g90s3c* = profit:*60g9s96c*
-    ## Mainsail of the Lion's Champion  |  sell:*157g99s99c* - buy:*79g32s21c* = profit:*54g97s77c*
-    ## Polysaturating Reverberating Infusion (Purple)  |  sell:*159g32s99c* - buy:*86g0s0c* = profit:*49g43s3c*
-    ## Unspoken Curse  |  sell:*154g54s54c* - buy:*82g62s13c* = profit:*48g74s22c*
-    ## Polysaturating Reverberating Infusion (Purple)  |  sell:*141g97s97c* - buy:*72g0s1c* = profit:*48g68s25c*
-    ## Mini Copper Skyscale Hatchling  |  sell:*139g99s98c* - buy:*70g50s2c* = profit:*48g49s95c*
-    ## Jormag's Needle  |  sell:*144g98s99c* - buy:*75g7s13c* = profit:*48g17s0c*
-    ## Mini Silver Jackal Pup  |  sell:*129g99s88c* - buy:*65g1s21c* = profit:*45g48s67c*
-    ## Might of the Lion's Champion  |  sell:*157g0s99c* - buy:*88g95s13c* = profit:*44g50s70c*
-    ## Polysaturating Reverberating Infusion (Red)  |  sell:*146g98s97c* - buy:*81g0s2c* = profit:*43g94s9c*
-    ## Kaiser Snake Warhorn Skin  |  sell:*149g58s45c* - buy:*84g2s37c* = profit:*43g12s30c*
-    ## Mini Green Tigris Cub  |  sell:*143g98s96c* - buy:*80g2s35c* = profit:*42g36s75c*
-    ## Bloodstone Sword Skin  |  sell:*125g12s69c* - buy:*64g12s76c* = profit:*42g23s1c*
-    ## Polysaturating Reverberating Infusion (Purple)  |  sell:*137g99s99c* - buy:*76g0s15c* = profit:*41g29s83c*
-    ## Boots of the Obsidian Path of the Cavalier  |  sell:*118g98s98c* - buy:*60g11s69c* = profit:*41g2s43c*
-    ## Recipe: Zehtuka's Guise  |  sell:*105g95s93c* - buy:*54g0s1c* = profit:*36g6s52c*
-    ## Recipe: Zehtuka's Pauldrons  |  sell:*99g98s87c* - buy:*51g0s3c* = profit:*33g99s0c*
-    ## Recipe: Zehtuka's Striders  |  sell:*95g55s55c* - buy:*48g0s6c* = profit:*33g22s14c*
+| Name                                           | Buy         | Sell         | Profit      |
+|:-----------------------------------------------|:------------|:-------------|:------------|
+| Polysaturating Reverberating Infusion (Purple) | 95g 0s 28c  | 189g 90s 12c | 66g 41s 31c |
+| Wall of the Mists                              | 90g 1s 6c   | 179g 0s 0c   | 62g 13s 93c |
+| Polysaturating Reverberating Infusion (Red)    | 92g 90s 3c  | 180g 0s 0c   | 60g 9s 96c  |
+| Mainsail of the Lion’s Champion                | 79g 32s 21c | 157g 99s 99c | 54g 97s 77c |
+| Polysaturating Reverberating Infusion (Purple) | 86g 0s 0c   | 159g 32s 99c | 49g 43s 3c  |
+| Unspoken Curse                                 | 82g 62s 13c | 154g 54s 54c | 48g 74s 22c |
+| Polysaturating Reverberating Infusion (Purple) | 72g 0s 1c   | 141g 97s 97c | 48g 68s 25c |
+| Mini Copper Skyscale Hatchling                 | 70g 50s 2c  | 139g 99s 98c | 48g 49s 95c |
+| Jormag’s Needle                                | 75g 7s 13c  | 144g 98s 99c | 48g 17s 0c  |
+| Mini Silver Jackal Pup                         | 65g 1s 21c  | 129g 99s 88c | 45g 48s 67c |
+| Might of the Lion’s Champion                   | 88g 95s 13c | 157g 0s 99c  | 44g 50s 70c |
+| Polysaturating Reverberating Infusion (Red)    | 81g 0s 2c   | 146g 98s 97c | 43g 94s 9c  |
+| Kaiser Snake Warhorn Skin                      | 84g 2s 37c  | 149g 58s 45c | 43g 12s 30c |
+| Mini Green Tigris Cub                          | 80g 2s 35c  | 143g 98s 96c | 42g 36s 75c |
+| Bloodstone Sword Skin                          | 64g 12s 76c | 125g 12s 69c | 42g 23s 1c  |
+| Polysaturating Reverberating Infusion (Purple) | 76g 0s 15c  | 137g 99s 99c | 41g 29s 83c |
+| Boots of the Obsidian Path of the Cavalier     | 60g 11s 69c | 118g 98s 98c | 41g 2s 43c  |
+| Recipe: Zehtuka’s Guise                        | 54g 0s 1c   | 105g 95s 93c | 36g 6s 52c  |
+| Recipe: Zehtuka’s Pauldrons                    | 51g 0s 3c   | 99g 98s 87c  | 33g 99s 0c  |
+| Recipe: Zehtuka’s Striders                     | 48g 0s 6c   | 95g 55s 55c  | 33g 22s 14c |

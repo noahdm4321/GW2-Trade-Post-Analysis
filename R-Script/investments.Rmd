@@ -8,6 +8,7 @@ output: github_document
 ```{r include=FALSE}
 library(tidyverse)
 library(RSQLite)
+library(knitr)
 ```
 
 ## Data Retrieval
@@ -105,7 +106,7 @@ ggplot(data = investments, mapping = aes(x=sell_price, y=profit)) +
 
 ## Refining Investment Opportunities
 
-##### In this section, we all items in `investments`. We use a reference line to indicate the threshold at which items will instantly sell or buy (red). Then, we further refine the investment opportunities by filtering out items that have a sell price exceeding twice the buy price, with a reference line indicating 2x buy value (blue).
+##### In this section, we filter all items in `investments`. We use a reference line to indicate the threshold at which items will instantly sell or buy (red). Then, we further refine the investment opportunities by filtering out items that have a sell price exceeding twice the buy price, with a reference line indicating 2x buy value (blue).
 
 ```{r chart 2, echo=FALSE}
 # Plot irrelevant items
@@ -136,7 +137,7 @@ ggplot(data = investments, mapping = aes(x=sell_price, y=buy_price)) +
 
 ## Finalizing Investment Opportunities
 
-##### In this section, we further refine the investment opportunities by filtering out lower-profit items that have a profit less than 30% of buy price. We also remove items with a buy price higher than 100 gold. Finally, we plot the data to visualize the remaining investment opportunities and list the items sorted by their profit in descending order.
+##### In this section, we further refine the investment opportunities by filtering out lower-profit items that have a profit less than 30% of buy price (blue). We also remove items with a buy price higher than 100 gold (red). Finally, we plot the data to visualize the remaining investment opportunities and list the items sorted by their profit in descending order.
 
 ```{r chart 3.5, echo=FALSE}
 # Plot data
@@ -181,9 +182,9 @@ currency <- function(price) {
   if (gold == 0 && silver == 0) {
     result <- paste0(copper, "c")
   } else if (gold == 0) {
-    result <- paste0(silver, "s", copper, "c")
+    result <- paste0(silver, "s ", copper, "c")
   } else {
-    result <- paste0(gold, "g", silver, "s", copper, "c")
+    result <- paste0(gold, "g ", silver, "s ", copper, "c")
   }
   
   return(result)
@@ -193,12 +194,35 @@ currency <- function(price) {
 ```{r echo=FALSE}
 # Sort results
 investments <- investments %>% arrange(desc(profit))
-# print top 20 item
-for (i in 1:min(nrow(investments), 20)) {
+
+# Create a data frame with formatted currency values
+investment_table <- data.frame(
+  Name = character(),
+  Buy = character(),
+  Sell = character(),
+  Profit = character(),
+  stringsAsFactors = FALSE
+)
+
+# Iterate through top 20 rows and store values to investment_table
+row_counter <- 0  # Counter for limiting rows
+for (i in 1:nrow(investments)) {
   item <- investments[i, ]
-  buy = item$buy_price
-  cat(paste0(item$name, "  |  sell:*", currency(item$sell_price), "* - buy:*",
-             currency(item$buy_price), "* = profit:*", currency(item$profit),
-             "*\n"))
+  name <- item$name
+  buy <- currency(item$buy_price)
+  sell <- currency(item$sell_price)
+  profit <- currency(item$profit)
+  investment_table <- rbind(investment_table, c(name, buy, sell, profit))
+  
+  row_counter <- row_counter + 1
+  if (row_counter == 20) {
+    break
+  }
 }
+
+# Set column names
+colnames(investment_table) <- c("Name", "Buy", "Sell", "Profit")
+
+# Print the table
+kable(investment_table, format = "markdown")
 ```

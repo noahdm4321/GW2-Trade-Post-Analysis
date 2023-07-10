@@ -1,5 +1,5 @@
 # Trade-Post-Database
-###### Custom developed program to import trade post data from GW2 API and analyze results for investment opportunities. Designed to showcase programming and analytically skills.
+##### Custom developed program to import trade post data from GW2 API and analyze results for investment opportunities. Designed to showcase programming and analytically skills.
 
 
 #### Skills Displayed
@@ -20,10 +20,11 @@
     - Data Filtering and Sorting
     - Data Visualization
     - RMarkdown
+    - Scripting Functions
 
 
 #### Results
-###### The final results of the analysis can be found [here](/R-Script/investments.md). In order to update the results: 
+##### The final results of the analysis can be found [here](/R-Script/investments.md). In order to update the results: 
 1. Clone the repository
 2. Install requests and sqlite3 Python modules
 3. Run create_db.py
