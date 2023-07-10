@@ -6,6 +6,9 @@ output: github_document
 ##### This documents outlines the process of cleaning, agrigating, and analysing the Guild Wars 2 trading post data, taken from the Gw2 API (stored in local SQLite database). By the end of the document, we will have a list of all viable investment oportunities for flipping items on the Guild Wars 2 Trading Post.
 
 ```{r include=FALSE}
+install.packages("tidyverse")
+install.packages("RSQLite")
+
 library(tidyverse)
 library(RSQLite)
 ```
