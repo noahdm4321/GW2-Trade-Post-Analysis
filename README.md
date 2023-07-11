@@ -1,8 +1,8 @@
 # About the Repository
-##### This is a program developed from scratch to import trade post data from GW2 API and analyze results for investment opportunities within the trading post. The purpose of this repository is to showcase my programming and analytically skills.
+##### This is a program developed from scratch to import trade post data from GW2 API and analyze results for investment opportunities. The purpose of this repository is to showcase my programming and analytical skills.
 
 #### What is GW2?
-##### GW2 is an acronym for Guild Wars 2: a large multiplayer online game. GW2 has over 18M different players and is in the top 10 most popular MMO games.<sup>[\[1\]](https://mmo-population.com/r/guildwars2)</sup> Within the game, there is a trading post where players can buy and sell different items between eachother. There is no set value for any item within the trading post, so the value of each item fluctuates with supply and demand. This model closely reflects that of a stock market, where each item is a type of stock you can invest in and then sell later for profit. There are even players who dedicate most of there playtime in the game just flipping items on the trading post. 
+##### GW2 is an acronym for Guild Wars 2: a large multiplayer online game. GW2 has over 18M different players and is in the top 10 most popular MMO games.<sup>[\[1\]](https://mmo-population.com/r/guildwars2)</sup> Within the game, there is a trading post where players can buy and sell different items between eachother. There is no set value for any item within the trading post, so the value of each item fluctuates with supply and demand. This model closely reflects that of a stock market, where each item is a type of stock you can invest in and then sell later for profit. There are even players who dedicate most of their playtime in the game just flipping items on the trading post. 
 
 #### Skills Displayed
 - Python
@@ -13,9 +13,9 @@
     - Scripting Functions
 - SQL
     - Relational Databases
-    - Creating tables and views
-    - Inserting and updating rows in table
-    - Batch Exicution
+    - Creating Tables and Views
+    - Inserting and Updating Rows in Tables
+    - Batch Execution
 - R
     - Database Interaction
     - Data Manipulation
@@ -35,7 +35,7 @@
 4. Install `requests` and `sqlite3` python modules
 5. Run `create_db.py` in python
 6. Run `update_db.py` in python
-   - This can take several minutes to exicute.
+   - This can take several minutes to execute.
 7. Open `/R-Script/README.Rmd` in RStudio and knit.
 
 
