@@ -3,9 +3,15 @@ Investment Oportunities
 
 #### This documents outlines the process of agrigating, cleaning, and analysing the Guild Wars 2 trading post data, taken from the Gw2 API (stored in local SQLite database). By the end of the document, we will have a list of all viable investment oportunities for flipping items on the Guild Wars 2 Trading Post.
 
+<p style="text-align: center;">
+Data last updated: 2023-07-11 10:57:48
+</p>
+
 ## Data Retrieval
 
-#### In this section, we connect to the database and query the necessary raw data. We retrieve the items’ information, including their names and values, as well as the price data, which includes buy and sell prices and quantities.
+### In this section, we connect to the database and query the necessary raw data.
+
+#### We retrieve the items’ information, including their names and values, as well as the price data, which includes buy and sell prices and quantities.
 
 ``` r
 # Connect to the database
@@ -24,7 +30,9 @@ dbDisconnect(con)
 
 ## Data Transformation
 
-#### In this section, we merge the items and prices data to create the `item_data` dataframe. We handle missing values, replacing them with NPC vendor values. Then, we calculate the profit for flipping each item based on buy and sell prices. We also deduct the trade post tax (15% from sell value) from our profit value.
+### In this section, we merge the items and prices data to create the `item_data` dataframe.
+
+#### We handle missing values, replacing them with NPC vendor values. Then, we calculate the profit for flipping each item based on buy and sell prices. We also deduct the trade post tax (15% from sell value) from our profit value.
 
 ``` r
 # Define item_data dataframe
@@ -57,6 +65,8 @@ item_data$profit <- ceiling((item_data$sell_price-1) * 0.85) -
   item_data$buy_price-1
 ```
 
+#### Preview of `item_data` structure:
+
     ## Rows: 27,143
     ## Columns: 7
     ## $ id            <int> 24, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, …
@@ -69,7 +79,9 @@ item_data$profit <- ceiling((item_data$sell_price-1) * 0.85) -
 
 ## Identifying Investment Opportunities
 
-#### In this section, we filter the `item_data` to select items that are the most profitable. First let’s plot the `item_data` by profit acording to cost, with a reference line indicating profit loss.
+#### In this section, we filter the `item_data` to select items that are the most profitable.
+
+##### First let’s plot the `item_data` by profit acording to cost, with a reference line indicating profit loss.
 
 ![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
