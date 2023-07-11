@@ -1,0 +1,272 @@
+---
+title: "Investment Oportunities"
+output: github_document
+---
+
+#### This documents outlines the process of agrigating, cleaning, and analysing the Guild Wars 2 trading post data, taken from the Gw2 API (stored in local SQLite database). By the end of the document, we will have a list of all viable investment oportunities for flipping items on the Guild Wars 2 Trading Post.
+
+```{r include=FALSE}
+library(tidyverse)
+library(RSQLite)
+library(knitr)
+
+# Define function to convert price value to currency value
+currency <- function(price) {
+  gold <- floor(price / 10000)
+  silver <- floor((price %% 10000) / 100)
+  copper <- price %% 100
+  
+  if (gold == 0 && silver == 0) {
+    result <- paste0(copper, "c")
+  } else if (gold == 0) {
+    result <- paste0(silver, "s ", copper, "c")
+  } else {
+    result <- paste0(gold, "g ", silver, "s ", copper, "c")
+  }
+  
+  return(result)
+}
+```
+
+## Data Retrieval
+
+#### In this section, we connect to the database and query the necessary raw data. We retrieve the items' information, including their names and values, as well as the price data, which includes buy and sell prices and quantities.
+
+```{r message=FALSE}
+# Connect to the database
+con <- dbConnect(SQLite(), dbname = "../data.db")
+
+# Query the raw data from database
+query <- "SELECT [id], [name], [value] FROM [items]"
+items <- dbGetQuery(con, query)
+query <- "SELECT [item_id], [buy_price], [buy_quantity], [sell_price], 
+  [sell_quantity] FROM [prices]"
+prices <- dbGetQuery(con, query)
+
+# Close the database connection
+dbDisconnect(con)
+```
+
+## Data Transformation
+
+#### In this section, we merge the items and prices data to create the `item_data` dataframe. We handle missing values, replacing them with NPC vendor values. Then, we calculate the profit for flipping each item based on buy and sell prices. We also deduct the trade post tax (15% from sell value) from our profit value. 
+
+```{r message=FALSE}
+# Define item_data dataframe
+item_data <- merge(
+  items, prices, 
+  by.x = "id", by.y = "item_id"
+)
+
+# Replace missing price values with vendor values
+item_data$buy_price <- ifelse(
+  is.na(item_data$buy_price), 
+  item_data$value, 
+  item_data$buy_price
+)
+item_data$sell_price <- ifelse(
+  is.na(item_data$sell_price), 
+  item_data$value, 
+  item_data$sell_price
+)
+
+# Replace missing quantity value with 0
+item_data$sell_quantity[is.na(item_data$sell_quantity)] <- 0
+item_data$buy_quantity[is.na(item_data$buy_quantity)] <- 0
+
+# Remove vendor value
+item_data <- subset(item_data, select = -value)
+
+# Add flipping profit column
+item_data$profit <- ceiling((item_data$sell_price-1) * 0.85) -
+  item_data$buy_price-1
+```
+
+```{r echo=FALSE}
+glimpse(item_data)
+```
+
+## Identifying Investment Opportunities
+
+#### In this section, we filter the `item_data` to select items that are the most profitable. First let's plot the `item_data` by profit acording to cost, with a reference line indicating profit loss.
+
+```{r echo=FALSE}
+# Plot data
+ggplot(data = item_data, mapping = aes(x=buy_price, y=profit)) +
+  geom_point() +
+  # Add profit loss line
+  geom_hline(yintercept = 0, color = "red")
+```
+
+##### Let's remove all data that would result in a net loss (bellow the red line) or that are not purchaseable. Also if multiple items have the same buy price, we choose the one with the highest profit.
+
+```{r message=FALSE}
+# Create dataframe of investment opportunities
+investments <- item_data %>%
+  # Filter out items that are not profitable
+  filter(profit > 0, buy_quantity > 0) %>%
+  
+  # If two items cost the same, take highest profit
+  group_by(buy_price) %>%
+  slice_max(profit) %>%
+  ungroup()
+```
+
+```{r echo=FALSE}
+# Plot data
+ggplot(data = investments, mapping = aes(x=buy_price, y=profit)) +
+  geom_point() +
+  # Add profit loss line
+  geom_hline(yintercept = 0, color = "red")
+```
+
+```{r include=FALSE}
+# Find highest profit item
+example1 <- investments[which.max(investments$profit),]
+ex_buy <- currency(example1$buy_price)
+ex_sell <- currency(example1$sell_price)
+```
+##### Some of these options are not fesable as a sale because the price is too high. For example, the highest profitable item right now has a purchase demand of `r ex_buy` and a sell value of `r ex_sell`! That will never sell because the gap between the buy price and the sell price is too large.
+##### Let's plot the buy price and sell price to see the difference between them with a reference line indicating the instant sell/buy line: when the buy value and sell value are equal.
+
+```{r echo=FALSE}
+# Plot irrelevant items
+ggplot(data = investments, mapping = aes(x=sell_price, y=buy_price)) +
+  geom_point() +
+  # Add deal line: line at which items will instant sell/buy
+  geom_abline(slope = 1, intercept = 0, color = "red")
+```
+
+##### Now, we can further refine our list of the investment opportunities by filtering out items that have a sell price exceeding twice the buy price. Reference line in blue.
+
+```{r message=FALSE}
+# Refine investments
+investments <- investments %>%
+  # Filter out items that have a sell price of more than 2x the buy price
+  filter(sell_price <= buy_price * 2)
+```
+
+```{r echo=FALSE}
+# Plot irrelevant items
+ggplot(data = investments, mapping = aes(x=sell_price, y=buy_price)) +
+  geom_point() + 
+  # Add deal line: line at which items will sell/buy
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  # Add 2x buy price line
+  geom_abline(slope = 0.5, intercept = 0, color = "blue")
+```
+
+##### Finally we have a list of items that are profitable and possible to sell. Now we can filtering out lower-profit items that have a profit less than 50% of buy price (blue). We also remove items with a buy price higher than 1000 gold (red).
+
+```{r echo=FALSE}
+# Plot data
+ggplot(data = investments, mapping = aes(x=buy_price, y=profit)) +
+  geom_point() +
+  # Add profit minimum line
+  geom_abline(slope = 0.5, intercept = 0, color = "blue") +
+  # Add max buy line
+  geom_vline(xintercept = 10000000, color = "red")
+```
+
+```{r message=FALSE}
+# Refine investments
+investments <- investments %>%
+  # Filter out items with profit less than 50% of buy price
+  filter(profit >= buy_price * 0.5) %>%
+  # Filter out low profit and high cost items
+  filter(profit > 10000, buy_price < 10000000)
+```
+
+```{r echo=FALSE}
+# Plot data
+ggplot(data = investments, mapping = aes(x=buy_price, y=profit)) +
+  geom_point() +
+  # Add profit minimum line
+  geom_abline(slope = 0.5, intercept = 0, color = "blue") +
+  # Add max buy line
+  geom_vline(xintercept = 10000000, color = "red")
+```
+
+# Conclusion
+
+#### We have our results! We managaged to filter our results from `r nrow(item_data)` to `r nrow(investments)` potential investments.
+
+##### Below is a list of the highest profit items with the recommened purchasing and listing prices along with the calucalated net profit. These items typically take a while to sell and occationally you can become "outbid" by someone else: high risk, high reward.
+
+```{r echo=FALSE}
+# Sort results
+investments <- investments %>% arrange(desc(profit))
+
+# Create a data frame with formatted currency values
+investment_table <- data.frame(
+  Name = character(),
+  Buy = character(),
+  Sell = character(),
+  Profit = character(),
+  stringsAsFactors = FALSE
+)
+
+# Iterate through top 20 rows and store values to investment_table
+row_counter <- 0  # Counter for limiting rows
+for (i in 1:nrow(investments)) {
+  item <- investments[i, ]
+  name <- item$name
+  buy <- currency(item$buy_price+1)
+  sell <- currency(item$sell_price-1)
+  profit <- currency(item$profit)
+  investment_table <- rbind(investment_table, c(name, buy, sell, profit))
+  
+  row_counter <- row_counter + 1
+  if (row_counter == 10) {
+    break
+  }
+}
+
+# Set column names
+colnames(investment_table) <- c("Name", "Buy", "Sell", "Profit")
+
+# Print the table
+kable(investment_table, format = "markdown")
+```
+
+##### Additionally here is a list of items with a high purchasing demand. These items typically sell fast and but have a lower proft value: low risk, low reward.
+
+```{r echo=FALSE}
+# Sort results
+investments <- investments %>% arrange(desc(buy_quantity))
+
+# Create a data frame with formatted currency values
+investment_table <- data.frame(
+  Name = character(),
+  Buy = character(),
+  Sell = character(),
+  Profit = integer(),
+  stringsAsFactors = FALSE
+)
+
+# Iterate through top 20 rows and store values to investment_table
+row_counter <- 0  # Counter for limiting rows
+for (i in 1:nrow(investments)) {
+  item <- investments[i, ]
+  name <- item$name
+  buy <- currency(item$buy_price+1)
+  sell <- currency(item$sell_price-1)
+  profit <- currency(item$profit)
+  investment_table <- rbind(investment_table, c(name, buy, sell, profit))
+  
+  row_counter <- row_counter + 1
+  if (row_counter == 10) {
+    break
+  }
+}
+
+# Set column names
+colnames(investment_table) <- c("Name", "Buy", "Sell", "Profit")
+
+# Print the table
+kable(investment_table, format = "markdown")
+```
+
+# Next Steps
+
+#### There is no garentee that any of these items will sell or be purchased because the market tends to flucuate. I am currently working on creating a historical database to calculate a fullfilment probability percentage based on purchasing history. There is also the possiblity of implamenting a basic AI program for future trend prediction depending on how much data I can collect. 

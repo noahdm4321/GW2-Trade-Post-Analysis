@@ -1,6 +1,8 @@
-# Trade-Post-Database
-##### Custom developed program to import trade post data from GW2 API and analyze results for investment opportunities. Designed to showcase programming and analytically skills.
+# About the Repository
+##### This is a program developed from scratch to import trade post data from GW2 API and analyze results for investment opportunities within the trading post. The purpose of this repository is to showcase my programming and analytically skills.
 
+#### What is GW2?
+##### GW2 is an acronym for Guild Wars 2: a large multiplayer online game. GW2 has over 18M different players and is ranked #9 in most popular MMO games.<sup>[\[1\]](https://mmo-population.com/r/guildwars2)</sup> Within the game, there is a trading post where players can buy and sell different items between eachother. There is no set value for any item within the trading post, so the value of each item fluctuates with supply and demand. This model closely reflects that of a stock market, where each item is a type of stock you can invest in and then sell later for profit. There are even players who dedicate most of there playtime in the game just flipping items on the trading post. 
 
 #### Skills Displayed
 - Python
@@ -24,9 +26,18 @@
 
 
 #### Results
-##### The final results of the analysis can be found [here](/R-Script/investments.md). In order to update the results: 
+##### The final results of the analysis can be found [here](/R-Script/README.md). In order to update the results: 
 1. Clone the repository
-2. Install requests and sqlite3 Python modules
-3. Run create_db.py
-4. Run update_db.py - Can take several minutes to exicute
-5. Run investments.Rmd
+2. Install python 3.7+
+    - <https://www.python.org/downloads>
+3. Install R 3.3+ and RStudio
+    - <https://posit.co/download/rstudio-desktop>
+4. Install `requests` and `sqlite3` python modules
+5. Run `create_db.py` in python
+6. Run `update_db.py` in python
+   - This can take several minutes to exicute.
+7. Open `/R-Script/README.Rmd` in RStudio and knit.
+
+
+#### Citations
+###### <sup>[1]</sup> : <https://mmo-population.com/r/guildwars2>
