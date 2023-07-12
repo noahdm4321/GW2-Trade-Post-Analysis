@@ -32,11 +32,12 @@
     - <https://www.python.org/downloads>
 3. Install R 3.3+ and RStudio
     - <https://posit.co/download/rstudio-desktop>
-4. Install `requests` and `sqlite3` python modules
-5. Run `create_db.py` in python
-6. Run `update_db.py` in python
+4. Install `requests` python module
+    - run command `pip install requests` in Command Prompt
+6. Run `create_db.py` in python
+7. Run `update_db.py` in python
    - This can take several minutes to execute.
-7. Open `/R-Script/README.Rmd` in RStudio and knit.
+8. Open `/R-Script/README.Rmd` in RStudio and knit.
 
 
 #### Citations
